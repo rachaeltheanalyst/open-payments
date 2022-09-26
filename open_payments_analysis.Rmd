@@ -1,0 +1,134 @@
+---
+title: "Open Payments Data Wrangling" 
+author:
+- name: Rachael An
+  affiliation: Smith College
+ 
+output: 
+  html_document:
+    toc: true
+    toc_depth: 6
+    toc_float: true
+    fig_width: 7
+    fig_height: 6
+    fig_caption: true
+    theme: cerulean
+    df_print: paged
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE,
+  echo = TRUE
+)
+library(tidyverse)
+library(lubridate)
+
+```
+
+```{r import, include=FALSE}
+payment_data <- read_csv("datasets/data.csv")
+```
+
+```{r clean, include=FALSE}
+ 
+payment_data_cleaned <- 
+  payment_data %>%
+    mutate(physician_full_name = paste(physician_first_name,
+                                       physician_last_name, sep = "")) %>%
+    mutate(applicable_manufacturer_or_applicable_gpo_making_payment_name =
+             toupper(applicable_manufacturer_or_applicable_gpo_making_payment_name)) %>%
+    mutate(physician_specialty = toupper(physician_specialty)) %>%
+    mutate(nature_of_payment_or_transfer_of_value =
+             toupper(nature_of_payment_or_transfer_of_value)) %>%
+    mutate(date_of_payment = mdy(date_of_payment)) %>%
+    mutate(payment_publication_date = mdy(payment_publication_date)) %>%
+    select(nature_of_payment_or_transfer_of_value, 
+           total_amount_of_payment_usdollars,
+           applicable_manufacturer_or_applicable_gpo_making_payment_name, 
+           physician_specialty)
+
+View(payment_data_cleaned)
+```
+
+# Analysis
+ 
+#### Top 10 Specialties that Received the Most Amount of Money in MA in 2020
+ 
+```{r analysis_1, warning = FALSE}
+ 
+# Top 10 Specialties that Received the Most Amount of Money in MA in 2020
+# add a simple plot
+payment_data_cleaned %>%
+  filter(!is.na(physician_specialty)) %>%
+  group_by(physician_specialty) %>%
+  summarise(total_money = sum(total_amount_of_payment_usdollars)) %>%
+  arrange(desc(total_money)) %>%
+  top_n(10)
+```
+
+#### Top 10 Amounts of Money Spent By a Company on a Specialty in MA in 2020 
+ 
+```{r analysis_2, warning = FALSE}
+ 
+payment_data_cleaned %>%
+  filter(!is.na(physician_specialty)) %>%
+  # calculate the total amount of money each specialty received
+  group_by(physician_specialty) %>%
+  mutate(total_money_for_specialty = sum(total_amount_of_payment_usdollars)) %>%
+  ungroup() %>%
+  # calculate the money each company spent on each specialty, how much of the specialty total came from that company
+  group_by(physician_specialty,
+           applicable_manufacturer_or_applicable_gpo_making_payment_name) %>%
+  summarize(total_company_money_for_specialty = sum(total_amount_of_payment_usdollars),
+            percent_money_for_specialty = total_company_money_for_specialty / total_money_for_specialty) %>%
+  ungroup() %>%
+  # find and order the top ten amounts
+  unique() %>%
+  arrange(desc(total_company_money_for_specialty)) %>%
+  top_n(10, total_company_money_for_specialty)
+```
+ 
+#### Specialties that Made the Most in the Top 10 Payment Types in MA in 2020
+ 
+```{r analysis_3, warning = FALSE}
+ 
+ 
+# calculate the total payment for each specialty and payment type combination and
+# order result by total payment and save in a new data frame
+specialty_payment_type_data <-
+  payment_data_cleaned %>%
+  filter(!is.na(physician_specialty)) %>%
+  group_by(physician_specialty, nature_of_payment_or_transfer_of_value) %>%
+  mutate(total_specialty_money_for_payment_type = 
+           sum(total_amount_of_payment_usdollars)) %>%
+  arrange(desc(total_specialty_money_for_payment_type)) 
+
+# select top specialty that made the most for each payment type
+# and save the result in a new data frame
+top_specialty_for_payment_type <-
+  Reduce(rbind,
+         by(specialty_payment_type_data,
+            specialty_payment_type_data["nature_of_payment_or_transfer_of_value"],
+            head,
+            n = 1)) 
+
+# order by total payment and select the top 10 rows
+top_specialty_for_payment_type %>%
+  select(nature_of_payment_or_transfer_of_value, 
+         physician_specialty, 
+         total_specialty_money_for_payment_type) %>%
+  arrange(desc(total_specialty_money_for_payment_type)) %>%
+  ungroup() %>%
+  top_n(10)
+```
+
+# Report
+
+  The dataset I used was from the Open Payments which was created and is managed by the Centers for Medicare & Medicaid Services in order to make the financial relationships between hospitals and physicians and drug and device companies obvious. This includes information like what hospital, the amount of the payment, the type of payment, etc. to help the public be more informed. Thus, the overarching question was: how does the physician's specialty affect the payment they receive? Specifically, I wanted to investigate specialties in relation to money, companies, and payment types.
+  
+  The first part of the analysis explored the total amount of payment that each physician specialty received. By organizing them into a top ten list, I found that physicians specializing in orthopedic surgery in Massachusetts received the most money overall, about \$7.5 million. Most of the other entries in the list were other types of allopathic and osteopathic physicians, particularly ones working in internal medicine. The second part of the analysis explored the amount of money that individual manufacturers and GPOs spent on different specialties. I found that Smith+Nephew Inc. spent the most amount of money on one specialty, about \$2 million on orthopedic surgery, which made up 27% of the total money received by orthopedic surgeons. The table shows that companies that spend a large amount of money can make a significant impact on a particular specialty. The third part of the analysis studied the types of payment and the physician specialty they went to the most. This showed that the largest total amount for a specialty in a certain payment type was the \$5 million spent on orthopedic surgery in the form of royalties and licenses. The next largest was $3 million in consulting fees for internal medicine, which shows that different specialties received most of their money in different payment types.
+  
+  The key takeaway from this dataset is that the payment from drug and device companies is not distributed evenly across all health care providers. Certain specialties receive more money in certain areas. For example, orthopedic surgeons received the most money from drug and device companies, especially as royalty and license fee. The Centers for Medicare & Medicaid Services (CMS) has a say in data collection and analysis regarding this dataset. The drug and device companies, the health care providers and the patients and their advocates who utilize the dataset have been excluded from the data collection and analysis process.The assumption is that the reporting entities report the data honestly, accurately and thoroughly. The commitment is to make the health care system more transparent for the public.The benefit of this dataset is that it provides a tool for the public to search for payments and data analysts to gain insights on the financial relationships between the drug and device companies and health care providers. One of the harm of this dataset is that since the information available on the database is open to personal interpretation, there is a possibility for misunderstanding and misinterpretation.
+ 
