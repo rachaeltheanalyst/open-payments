@@ -1,5 +1,5 @@
 <p align="center">
-<img src="images/open_payment.jpeg" height="400"/>
+<img src="images/open_payment.png" height="400"/>
 </p>
 
 > Wrangled the [**Open Payment**](https://openpaymentsdata.cms.gov/) dataset in order to reveal findings about the financial relationships between drug and device companies and certain healthcare providers in Massachusetts.
