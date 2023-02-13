@@ -19,6 +19,8 @@
 
 3. [Key Finding and Ethical Concern](#ethical)
 
+4. [Source](#source)
+
 <a name="about"/></a>
 ## 1. About the Dataset
 [Back to ToC](#toc)
@@ -57,7 +59,13 @@ The third part of my analysis studied the types of payment and the physician spe
 </p>
 
 <a name="ethical"/></a>      
-## 4. Key Finding and Ethical Concern
+## 3. Key Finding and Ethical Concern
 [Back to ToC](#toc)
 
 The key finding from this dataset is that the payment from drug and device companies is not distributed evenly across all health care providers. Certain specialties receive more money in certain areas. For example, orthopedic surgeons received the most money from drug and device companies, especially as royalty and license fee. The Centers for Medicare & Medicaid Services (CMS) has a say in data collection and analysis regarding this dataset. The drug and device companies, the health care providers and the patients and their advocates who utilize the dataset have been excluded from the data collection and analysis process.The assumption is that the reporting entities report the data honestly, accurately and thoroughly. The commitment is to make the health care system more transparent for the public.The benefit of this dataset is that it provides a tool for the public to search for payments and data analysts to gain insights on the financial relationships between the drug and device companies and health care providers. One of the harm of this dataset is that since the information available on the database is open to personal interpretation, there is a possibility for misunderstanding and misinterpretation.
+
+<a name="source"/></a>
+## 4. Source
+[Back to ToC](#toc)
+
+This project was a collaboration between Rachael An, Kika Kovaleski, and Alyssa Wheeler.
